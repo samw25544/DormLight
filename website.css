@@ -1,0 +1,20 @@
+h1{
+	display: flex;
+  justify-content: center;
+  font-family:'Times New Roman', Times, serif;
+  color: #000000;
+}
+
+.trapezoid-clip {
+  background-color: #9acbff; 
+  color: white;
+  padding: 15px 30px;
+  border: none;
+  cursor: pointer;
+  clip-path: polygon(20% 0, 80% 0, 100% 100%, 0 100%);
+	clip-path: polygon(20% 0, 80% 0, 100% 100%, 0 100%);
+}
+
+.trapezoid-clip:hover {
+  background-color: #005f7a;
+}
