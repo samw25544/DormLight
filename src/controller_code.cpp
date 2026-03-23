@@ -1,4 +1,8 @@
 #include <Arduino.h>
+#include <AsyncTCP.h>
+#include <WiFi.h>
+
+#include <ESPAsyncWebServer.h>
 
 // put function declarations here:
 
