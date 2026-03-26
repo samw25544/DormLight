@@ -1,20 +1,113 @@
-h1{
-	display: flex;
+h1 {
+  display: flex;
   justify-content: center;
-  font-family:'Times New Roman', Times, serif;
-  color: #000000;
+  font-family: 'Times New Roman', Times, serif;
+  margin-bottom: 10px; 
+}
+
+.main {
+  display: flex;
+  height: 700px;
+}
+
+.left-side {
+  width: 50%;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+.right-side {
+  width: 50%;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  gap: 20px;
+}
+
+.button-cluster {
+  position: relative;
+  width: 300px;
+  height: 300px;
+}
+
+.hexagon-clip {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  
+  width: 250px;
+  height: 250px;
+
+  display: flex;
+  justify-content: center;
+  align-items: center;
+
+  background-color: #007BFF;
+  color: white;
+  border: none;
+  cursor: pointer;
+
+  clip-path: polygon(
+    25% 5%, 75% 5%,
+    100% 50%,
+    75% 95%, 25% 95%,
+    0% 50%
+  );
+}
+
+.hexagon-clip:hover {
+  background-color: #0056b3;
 }
 
 .trapezoid-clip {
-  background-color: #9acbff; 
+  position: absolute;
+
+  width: 140px; 
+  height: 60px; 
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  background-color: #9acbff;
   color: white;
-  padding: 15px 30px;
   border: none;
   cursor: pointer;
   clip-path: polygon(20% 0, 80% 0, 100% 100%, 0 100%);
-	clip-path: polygon(20% 0, 80% 0, 100% 100%, 0 100%);
+  transition: background-color 0.3s;
 }
 
 .trapezoid-clip:hover {
   background-color: #005f7a;
+}
+
+.t1 { top: -40px; left: 50%; transform: translateX(-50%) rotate(0deg); }
+.t2 { top: 15%; right: -70px; transform: rotate(60deg); }
+.t3 { bottom: 15%; right: -70px; transform: rotate(120deg); }
+.t4 { bottom: -40px; left: 50%; transform: translateX(-50%) rotate(180deg); }
+.t5 { bottom: 15%; left: -70px; transform: rotate(240deg); }
+.t6 { top: 15%; left: -70px; transform: rotate(300deg); }
+
+.pre-sets {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  align-items: center;
+}
+
+.pre-sets button, .save-button {
+  padding: 10px 20px;
+  font-size: 16px;
+  cursor: pointer;
+}
+
+#message {
+  margin-top: 10px;
+  font-style: italic;
+  color: #333;
+}
+
+.slidecontainer input[type=range] {
+  width: 200px;
 }
