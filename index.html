@@ -1,32 +1,60 @@
 <!DOCTYPE html>
 <html>
-  <head>
-    <title>DormLight</title>
-    <meta charset="utf-8" />
-    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
-    <meta name="viewport" content="width=device-width, initial-scale=1" />
-    <link rel="stylesheet" href="website.css" />
-  </head>
+<head>
+  <title>DormLight</title>
+  <link rel="stylesheet" href="website.css">
+</head>
+<body>
+  <h1>DormLight</h1>
+
+  <div class="main">
+    <div class="left-side">
+      <div class="button-cluster">
+        <button class="hexagon-clip">Middle Panel</button>
+
+        <button class="trapezoid-clip t1">Panel 1</button>
+        <button class="trapezoid-clip t2">Panel 2</button>
+        <button class="trapezoid-clip t3">Panel 3</button>
+        <button class="trapezoid-clip t4">Panel 4</button>
+        <button class="trapezoid-clip t5">Panel 5</button>
+        <button class="trapezoid-clip t6">Panel 6</button>
+      </div>
+    </div>
+
+    <div class="right-side">
+      <div class="pre-sets">
+        <button onclick="editPreSave(1)">Pre-Save 1</button>
+        <button onclick="editPreSave(2)">Pre-Save 2</button>
+        <button class="save-button" onclick="saveSettings()">Save Settings</button>
+        <div id="message"></div>
+      </div>
+
+      <div class="slider-wrapper">
+        <input type="range" min="1" max="100" value="50" id="slider1">
+        <span class="slider-label">Brightness</span>
+        <input type="range" min="1" max="100" value="50" id="slider2">
+        <span class="slider-label">Temperature</span>
+      </div>
+    </div>
+  </div>
   
-  <body>
-      <h1>DormLight</h1>
-    </div>
+  <script>
+    let currentSlot = null;
 
-    <div class = "controls">
-			<button> HELLO </button>
-			<button> HELLO </button>
-			<button> HELLO </button>
-			<button> HELLO </button>
-			<button> HELLO </button>
-			<button> HELLO </button>
-			<button class = "trapezoid-clip"> AHHHH </button>
+    function editPreSave(slot) {
+      currentSlot = slot;
+      document.getElementById('message').innerText = `Editing Pre-Save Slot ${slot}`;
+    }
 
-			<div class="slidecontainer">
-			<input type="range" min="1" max="100" value="50" class="slider" id="myRange">
-			</div>
+    function saveSettings() {
+      if (currentSlot === null) {
+        alert("Pick a slot!");
+        return;
+      }
 
-    </div>
-   
-  </body>
-
+      alert("Saved!");
+      document.getElementById('message').innerText = `Saved Pre-Save Slot ${currentSlot}`;
+    }
+  </script>
+</body>
 </html>
