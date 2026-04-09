@@ -1,0 +1,99 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>DormLight</title>
+  <link rel="stylesheet" href="main.css">
+</head>
+<body>
+  <h1>DormLight</h1>
+
+  <div class="main">
+    <div class="left-side">
+      <div class="button-cluster">
+        <button class="hexagon-clip selected" id="panel0" onclick="selectPanel(0)">Middle Panel</button>
+
+        <button class="trapezoid-clip t1" id="panel1" onclick="selectPanel(1)">Panel 1</button>
+        <button class="trapezoid-clip t2" id="panel2" onclick="selectPanel(2)">Panel 2</button>
+        <button class="trapezoid-clip t3" id="panel3" onclick="selectPanel(3)">Panel 3</button>
+        <button class="trapezoid-clip t4" id="panel4" onclick="selectPanel(4)">Panel 4</button>
+        <button class="trapezoid-clip t5" id="panel5" onclick="selectPanel(5)">Panel 5</button>
+        <button class="trapezoid-clip t6" id="panel6" onclick="selectPanel(6)">Panel 6</button>
+      </div>
+    </div>
+
+    <div class="right-side">
+      <div class="pre-sets">
+        <button onclick="selectPresave(0)">Pre-Save 1</button>
+        <button onclick="selectPresave(1)">Pre-Save 2</button>
+        <!-- <button class="save-button" onclick="saveSettings()">Save Settings</button> -->
+        <div id="message"></div>
+      </div>
+
+      <div class="slider-wrapper">
+        <input type="range" min="1" max="100" value="50" id="slider1" onchange="updateBrightness()">
+        <span class="slider-label">Brightness</span>
+        <input type="range" min="1" max="100" value="50" id="slider2" onchange="updateTemperature()">
+        <span class="slider-label">Temperature</span>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    let currentSlot = 0;
+    let currentPanel = 0;
+
+    const websocket = new WebSocket(window.location.href + "ws")
+
+    let state = {
+      presets: [
+        {
+          panels: [
+            {
+              bright: 0,
+              temp: 0
+            },
+            {
+              bright: 0,
+              temp: 0
+            }
+          ]
+        }
+      ]
+    }
+
+    function selectPresave(slot) {
+      currentSlot = slot;
+      document.getElementById('message').innerText = `Editing Pre-Save Slot ${slot+1}`;
+    }
+    function selectPanel(panel) {
+      document.getElementById(`panel${currentPanel}`).classList.remove('selected')
+      currentPanel = panel;
+      document.getElementById(`panel${currentPanel}`).classList.add('selected')
+      //document.getElementById('message').innerText = `Editing Pre-Save Slot ${slot}`;
+    }
+    function updateBrightness() {
+      //state.presets[currentSlot].panels[currentPanel].bright = document.getElementById('slider1').value
+      //console.log(state)
+      let brightness = document.getElementById('slider1').value
+      websocket.send(`Updated Preset ${currentSlot}, Panel ${currentPanel}: Brightness = ${brightness}`)
+    }
+    function updateTemperature() {
+      //state.presets[currentSlot].panels[currentPanel].temp = document.getElementById('slider2').value
+      //console.log(state)
+      let temperature = document.getElementById('slider2').value
+      websocket.send(`Updated Preset ${currentSlot}, Panel ${currentPanel}: Temperature = ${temperature}`)
+    }
+
+    // function saveSettings() {
+    //   if (currentSlot === null) {
+    //     alert("Pick a slot!");
+    //     return;
+    //   }
+
+    //   alert("Saved!");
+    //   document.getElementById('message').innerText = "Saved Pre-Save Slot ${currentSlot}";
+    //   websocket.send("saved")
+    // }
+  </script>
+</body>
+</html>
