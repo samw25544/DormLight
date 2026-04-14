@@ -5,7 +5,16 @@
 #include <SPIFFS.h>
 #include <esp_now.h>
 
+//PCA9685 GPIO Expander
+#include <Wire.h>
+#include <Adafruit_PWMServoDriver.h>
 
+// I2C pins for PCA9685
+#define I2C_SDA 21
+#define I2C_SCL 22
+
+// Create the PCA9685 object at the default hardware address(0x40)
+Adafruit_PWMServoDriver pwm = Adafruit_PWMServoDriver(0x40);
 
 // put function declarations here:
 
@@ -16,7 +25,7 @@ const char* SSID     = "DormLight";
 const char* PASSWORD = "";   // min 8 chars, or "" for open
 
 /********************/
-/*SENDING CODE START*/
+/*START SENDING CODE*/
 /********************/
 // get the adress of the mac asdress of sending esp
 uint8_t senderMac[6] = {0xF4, 0x2D, 0xC9, 0x6B, 0xFC, 0xAC}; 
@@ -40,7 +49,7 @@ void OnDataRecv(const uint8_t * mac, const uint8_t * incomingData, int len) {
 }
 
 /******************/
-/*SENDING CODE END*/
+/*END SENDING CODE*/
 /******************/
 void setup() {
   // put your setup code here, to run once:
@@ -94,7 +103,7 @@ void setup() {
   Serial.println("Started website");
 
 /********************/
-/*SENDING CODE START*/
+/*START SENDING CODE*/
 /********************/
 //make sure espnow is working
   if (esp_now_init() != ESP_OK) {
@@ -116,13 +125,62 @@ void setup() {
   Serial.println("--- RECEIVER READY ---");
   Serial.println("Waiting for messages...");
 
-}
+/******************/
+/*END SENDING CODE */
+/******************/
 
+/********************/
+/*START LIGHT CODE*/
+/********************/
+  Serial.println("Starting Light Node Initialization...");
+
+ // Start the I2C bus using your specific pins
+  Wire.begin(I2C_SDA, I2C_SCL);
+
+  //Initialize the PCA9685
+  pwm.begin();
+
+  // Set the PWM Frequency for the PT4115
+  pwm.setPWMFreq(1000); 
+
+  // Ensure all lights are OFF on startup
+  for (uint8_t i=0; i<16; i++) {
+    pwm.setPWM(i, 0, 0); 
+  }
+
+  Serial.println("PCA9685 Initialized Successfully!");
+  delay(1000); 
+
+}
 
 
   
 
 void loop() {
   // put your main code here, to run repeatedly:
+
+  // 1. Check if you have typed anything into the Serial Monitor
+  if (Serial.available() > 0) {
+    
+    // 2. Read the incoming text and convert it to an integer
+    int newBrightness = Serial.parseInt();
+
+    // 3. Clear any leftover invisible newline characters (\n) from the buffer
+    Serial.readStringUntil('\n');
+
+    // 4. Safety Check: Constrain the value to the strict 12-bit range (0 to 4095)
+    // This prevents the chip from crashing if you accidentally type "5000"
+    newBrightness = constrain(newBrightness, 0, 4095);
+
+    // 5. Instantly apply the new brightness to Channel 0
+    pwm.setPWM(0, 0, newBrightness);
+
+    // 6. Print a confirmation back to your screen so you know it worked
+    Serial.print("Real-time brightness updated to: ");
+    Serial.println(newBrightness);
+  }
 }
+
+    
+
 

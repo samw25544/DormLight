@@ -1,6 +1,6 @@
 #include <Arduino.h>
-  #include <WiFi.h>
-  #include <esp_now.h>
+#include <WiFi.h>
+#include <esp_now.h>
   const int buttonPin1 = 25;
   const int buttonPin2 = 33;
 
@@ -32,7 +32,7 @@
   void setup() {
     Serial.begin(115200);
     pinMode(buttonPin1, INPUT_PULLUP);
-      pinMode(buttonPin2, INPUT_PULLUP);
+    pinMode(buttonPin2, INPUT_PULLUP);
     WiFi.mode(WIFI_STA);
 
     if (esp_now_init() != ESP_OK) {
