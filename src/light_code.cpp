@@ -15,7 +15,10 @@
 
 // Create the PCA9685 object at the default hardware address(0x40)
 Adafruit_PWMServoDriver pwm = Adafruit_PWMServoDriver(0x40);
-
+//Adafruit_PWMServoDriver pwm_board2 = Adafruit_PWMServoDriver(0x41); //for the second pca
+int preset1 = 200; // Example brightness value for preset 1
+int preset2 = 400; // Example brightness value for preset 2
+int preset3 = 800; // Example brightness value for preset 3
 // put function declarations here:
 
 AsyncWebServer server(80);
@@ -31,29 +34,31 @@ const char* PASSWORD = "";   // min 8 chars, or "" for open
 uint8_t senderMac[6] = {0xF4, 0x2D, 0xC9, 0x6B, 0xFC, 0xAC}; 
 
 //define the strcutre of sending message
-typedef struct {
-  int counter;
-  int temperature;
-  int brightness;
-  boolean OnOff;
-} struct_message;
+  typedef struct {
+    int counter;
+    int Button1State;
+    int Button2State;
+    int Button3State;
+    boolean OnOff;
+  } struct_message;
 
 // create a varable of our new type sending message
 struct_message inMsg;
-
+//SENDING CODE 
 //define a function of what to do once a message is recived
 void OnDataRecv(const uint8_t * mac, const uint8_t * incomingData, int len) {
   if (len != sizeof(struct_message)) return;
   memcpy(&inMsg, incomingData, sizeof(inMsg));
-  Serial.printf("Received counter=%d, temperature=%d, brightness=%d, OnOff=%d\n", inMsg.counter, inMsg.temperature,inMsg.brightness, inMsg.OnOff);
+  Serial.printf("Received counter=%d, Button1State=%d, Button2State=%d, Button3State=%d, OnOff=%d\n", inMsg.counter, inMsg.Button1State, inMsg.Button2State, inMsg.Button3State, inMsg.OnOff);
 }
 
 /******************/
 /*END SENDING CODE*/
 /******************/
+
 void setup() {
   // put your setup code here, to run once:
-  Serial.begin(9600);
+  Serial.begin(115200);
   // Serial.begin(115200); Jack: I was running code at 115200 this could be a issue but I cant check rn.
   
 
@@ -145,11 +150,10 @@ void setup() {
 
   // Ensure all lights are OFF on startup
   for (uint8_t i=0; i<16; i++) {
-    pwm.setPWM(i, 0, 0); 
+    pwm .setPWM(i, 0, 0); 
   }
 
   Serial.println("PCA9685 Initialized Successfully!");
-  delay(1000); 
 
 }
 
@@ -159,6 +163,28 @@ void setup() {
 void loop() {
   // put your main code here, to run repeatedly:
 
+  if(inMsg.OnOff && !inMsg.Button1State) {
+    pwm.setPWM(0, 0, 200);
+    pwm.setPWM(1, 0, 200);
+
+  } 
+  if(inMsg.OnOff && !inMsg.Button2State) {
+    pwm.setPWM(0, 0, 1500);
+    pwm.setPWM(1, 0, 200);
+
+  }
+  if(inMsg.OnOff && !inMsg.Button3State) {
+    pwm.setPWM(0, 0, 4000);
+    pwm.setPWM(1, 0, 4000);
+  }
+  if(!inMsg.OnOff) {
+    pwm.setPWM(0, 0, 0);
+    pwm.setPWM(1, 0, 0);
+  }
+
+
+  /*
+  this is the code for the serial monitor control of the light. I have it commented out for now because I want to test the espnow.
   // 1. Check if you have typed anything into the Serial Monitor
   if (Serial.available() > 0) {
     
@@ -178,7 +204,9 @@ void loop() {
     // 6. Print a confirmation back to your screen so you know it worked
     Serial.print("Real-time brightness updated to: ");
     Serial.println(newBrightness);
+    
   }
+    */
 }
 
     
