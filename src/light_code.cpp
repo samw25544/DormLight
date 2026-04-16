@@ -16,9 +16,12 @@
 // Create the PCA9685 object at the default hardware address(0x40)
 Adafruit_PWMServoDriver pwm = Adafruit_PWMServoDriver(0x40);
 //Adafruit_PWMServoDriver pwm_board2 = Adafruit_PWMServoDriver(0x41); //for the second pca
-int preset1 = 200; // Example brightness value for preset 1
-int preset2 = 400; // Example brightness value for preset 2
-int preset3 = 800; // Example brightness value for preset 3
+volatile bool newData = false;
+int preset1 [2] = {200, 200}; // Example brightness value for preset 1
+int preset2 [2] = {1500, 200}; // Example brightness value for preset 2
+int preset3 [2] = {4095, 4095}; // Example brightness value for preset 3
+int lastPreset[2] = {0, 0}; // To store the last preset values for both channels
+
 // put function declarations here:
 
 AsyncWebServer server(80);
@@ -50,6 +53,9 @@ void OnDataRecv(const uint8_t * mac, const uint8_t * incomingData, int len) {
   if (len != sizeof(struct_message)) return;
   memcpy(&inMsg, incomingData, sizeof(inMsg));
   Serial.printf("Received counter=%d, Button1State=%d, Button2State=%d, Button3State=%d, OnOff=%d\n", inMsg.counter, inMsg.Button1State, inMsg.Button2State, inMsg.Button3State, inMsg.OnOff);
+  
+  // Tell the loop we have a new message!
+  newData = true; 
 }
 
 /******************/
@@ -161,54 +167,39 @@ void setup() {
   
 
 void loop() {
-  // put your main code here, to run repeatedly:
+  // Only update the PCA9685 when a new message actually arrives
+  if (newData) {
+    newData = false; // Reset the flag immediately
 
-  if(inMsg.OnOff && !inMsg.Button1State) {
-    pwm.setPWM(0, 0, 200);
-    pwm.setPWM(1, 0, 200);
+    if (inMsg.OnOff) {
+      
+      // Update presets based on which button was pressed
+      // Using 'else if' stops the code from overriding itself
+      if (!inMsg.Button1State) {
+        lastPreset[0] = 200;
+        lastPreset[1] = 200;
+      } 
+      else if (!inMsg.Button2State) {
+        lastPreset[0] = 1500;
+        lastPreset[1] = 200;
+      } 
+      else if (!inMsg.Button3State) {
+        // FIXED: 4095 is the maximum. 4096 turns the PCA9685 off!
+        lastPreset[0] = 4095; 
+        lastPreset[1] = 4095;
+      }
 
-  } 
-  if(inMsg.OnOff && !inMsg.Button2State) {
-    pwm.setPWM(0, 0, 1500);
-    pwm.setPWM(1, 0, 200);
+      // Apply the chosen (or remembered) preset
+      pwm.setPWM(0, 0, lastPreset[0]);
+      pwm.setPWM(1, 0, lastPreset[1]);
 
+    } else {
+      // System is Off
+      pwm.setPWM(0, 0, 0);
+      pwm.setPWM(1, 0, 0);
+    }
   }
-  if(inMsg.OnOff && !inMsg.Button3State) {
-    pwm.setPWM(0, 0, 4000);
-    pwm.setPWM(1, 0, 4000);
-  }
-  if(!inMsg.OnOff) {
-    pwm.setPWM(0, 0, 0);
-    pwm.setPWM(1, 0, 0);
-  }
-
-
-  /*
-  this is the code for the serial monitor control of the light. I have it commented out for now because I want to test the espnow.
-  // 1. Check if you have typed anything into the Serial Monitor
-  if (Serial.available() > 0) {
-    
-    // 2. Read the incoming text and convert it to an integer
-    int newBrightness = Serial.parseInt();
-
-    // 3. Clear any leftover invisible newline characters (\n) from the buffer
-    Serial.readStringUntil('\n');
-
-    // 4. Safety Check: Constrain the value to the strict 12-bit range (0 to 4095)
-    // This prevents the chip from crashing if you accidentally type "5000"
-    newBrightness = constrain(newBrightness, 0, 4095);
-
-    // 5. Instantly apply the new brightness to Channel 0
-    pwm.setPWM(0, 0, newBrightness);
-
-    // 6. Print a confirmation back to your screen so you know it worked
-    Serial.print("Real-time brightness updated to: ");
-    Serial.println(newBrightness);
-    
-  }
-    */
 }
-
     
 
 
