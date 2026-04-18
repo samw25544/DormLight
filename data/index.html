@@ -45,19 +45,104 @@
     const websocket = new WebSocket(window.location.href + "ws")
 
     let state = {
-      presets: [
+      "current_preset": 0,
+      "presets": [
         {
-          panels: [
-            {
-              bright: 0,
-              temp: 0
-            },
-            {
-              bright: 0,
-              temp: 0
-            }
-          ]
-        }
+          "panels": [
+                {
+                    "bright": 0,
+                    "temp": 0
+                },
+                {
+                    "bright": 0,
+                    "temp": 0
+                },
+                {
+                    "bright": 0,
+                    "temp": 0
+                },
+                {
+                    "bright": 0,
+                    "temp": 0
+                },
+                {
+                    "bright": 0,
+                    "temp": 0
+                },
+                {
+                    "bright": 0,
+                    "temp": 0
+                },
+                {
+                    "bright": 0,
+                    "temp": 0
+                }
+            ]
+        },
+        {
+            "panels": [
+                {
+                    "bright": 0,
+                    "temp": 0
+                },
+                {
+                    "bright": 0,
+                    "temp": 0
+                },
+                {
+                    "bright": 0,
+                    "temp": 0
+                },
+                {
+                    "bright": 0,
+                    "temp": 0
+                },
+                {
+                    "bright": 0,
+                    "temp": 0
+                },
+                {
+                    "bright": 0,
+                    "temp": 0
+                },
+                {
+                    "bright": 0,
+                    "temp": 0
+                }
+            ]
+        },
+        {
+            "panels": [
+                {
+                    "bright": 0,
+                    "temp": 0
+                },
+                {
+                    "bright": 0,
+                    "temp": 0
+                },
+                {
+                    "bright": 0,
+                    "temp": 0
+                },
+                {
+                    "bright": 0,
+                    "temp": 0
+                },
+                {
+                    "bright": 0,
+                    "temp": 0
+                },
+                {
+                    "bright": 0,
+                    "temp": 0
+                },
+                {
+                    "bright": 0,
+                    "temp": 0
+                }
+            ]
+}
       ]
     }
 
@@ -75,25 +160,28 @@
       //state.presets[currentSlot].panels[currentPanel].bright = document.getElementById('slider1').value
       //console.log(state)
       let brightness = document.getElementById('slider1').value
-      websocket.send(`Updated Preset ${currentSlot}, Panel ${currentPanel}: Brightness = ${brightness}`)
+      state.presets[currentSlot].panels[currentPanel].bright = brightness
+      console.log(state)
+      sendUpdate()
     }
     function updateTemperature() {
       //state.presets[currentSlot].panels[currentPanel].temp = document.getElementById('slider2').value
       //console.log(state)
       let temperature = document.getElementById('slider2').value
-      websocket.send(`Updated Preset ${currentSlot}, Panel ${currentPanel}: Temperature = ${temperature}`)
+      state.presets[currentSlot].panels[currentPanel].temp = temperature
+      console.log(state)
+      sendUpdate()
     }
 
-    // function saveSettings() {
-    //   if (currentSlot === null) {
-    //     alert("Pick a slot!");
-    //     return;
-    //   }
-
-    //   alert("Saved!");
-    //   document.getElementById('message').innerText = "Saved Pre-Save Slot ${currentSlot}";
-    //   websocket.send("saved")
-    // }
+    function sendUpdate() {
+      websocket.send(JSON.stringify(state))
+    }
+    websocket.onmessage = function(event) {
+      console.log(event.data);
+      state = JSON.parse(event.data);
+      //state.presets[2].panels[5].bright = 400;
+      sendUpdate();
+    }
   </script>
 </body>
 </html>
