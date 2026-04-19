@@ -109,6 +109,85 @@ void updatePresets() {
   Serial.println("updated");
 }
 
+void writePWMs(bool OnOff, int currentPreset) {
+  Serial.println(currentPreset);
+    if  (OnOff) {
+      
+      if  (currentPreset == 1) {
+        for (uint8_t i=0; i<(sizeof(preset1) / sizeof(preset1[0])); i+=2) {
+          float b = preset1[i]; // Get the base brightness for this channel
+          float t = preset1[i+1]; // Get the temp factor for this channel
+          int coolPWM, warmPWM;
+            if(t <= 0.5) {
+              coolPWM = (int)(b * 4095.0); 
+              warmPWM = (int)(t * 2.0 * b * 4095.0);
+            }
+            else {
+              // Right half of the slider: Warm is pegged at Max, Cool ramps down from Max to 0
+              coolPWM = (int)((1.0 - t) * 2.0 * b * 4095.0); 
+              warmPWM = (int)(b * 4095.0);                   
+              }
+          
+
+          lastPreset[i] = coolPWM; 
+          lastPreset[i+1] = warmPWM;
+        }
+      } 
+      else if (currentPreset == 2) {
+         for (uint8_t i=0; i<(sizeof(preset2) / sizeof(preset2[0])); i+=2) {
+          float b = preset2[i]; // Get the base brightness for this channel
+          float t = preset2[i+1]; // Get the temp factor for this channel
+          int coolPWM, warmPWM;
+            if(t <= 0.5) {
+              coolPWM = (int)(b * 4095.0); 
+              warmPWM = (int)(t * 2.0 * b * 4095.0);
+            }
+            else {
+              // Right half of the slider: Warm is pegged at Max, Cool ramps down from Max to 0
+              coolPWM = (int)((1.0 - t) * 2.0 * b * 4095.0); 
+              warmPWM = (int)(b * 4095.0);                   
+              }
+          
+
+          lastPreset[i] = coolPWM; 
+          lastPreset[i+1] = warmPWM;
+        }
+      } 
+      else if (currentPreset == 3) {
+          // FIXED: Now dynamically calculates array size instead of hardcoding '3'
+          for (uint8_t i=0; i<(sizeof(preset3) / sizeof(preset3[0])); i+=2) {
+            float b = preset3[i]; // Get the base brightness for this channel
+            float t = preset3[i+1]; // Get the temp factor for this channel
+            int coolPWM, warmPWM;
+              if(t <= 0.5) {
+                coolPWM = (int)(b * 4095.0); 
+                warmPWM = (int)(t * 2.0 * b * 4095.0);
+              }
+              else {
+                // Right half of the slider: Warm is pegged at Max, Cool ramps down from Max to 0
+                coolPWM = (int)((1.0 - t) * 2.0 * b * 4095.0); 
+                warmPWM = (int)(b * 4095.0);                   
+                }
+            
+
+            lastPreset[i] = coolPWM; 
+            lastPreset[i+1] = warmPWM;
+          }
+      }
+
+      // Apply the chosen (or remembered) preset using the Smart Router
+        for (uint8_t i=0; i<(sizeof(lastPreset) / sizeof(lastPreset[0])); i++) {
+           pwm.setPWM(i, 0, lastPreset[i]);
+        } 
+      }
+    else if(!OnOff) {
+      // System is Off - Apply 0 using the Smart Router
+        for (uint8_t i=0; i<(sizeof(lastPreset) / sizeof(lastPreset[0])); i++) {
+           pwm.setPWM(i, 0, 0);
+      }
+    }
+}
+
 void setup() {
   // put your setup code here, to run once:
   Serial.begin(115200);
@@ -212,86 +291,99 @@ void setup() {
 unsigned long previousMillis = 0;
 const long interval = 100;
 
+bool OnOff = false;
+int currentPreset = 1;
 
 void loop() {
   if (true) {
     newData = false; 
 
-    if  (inMsg.OnOff) {
+    // if  (inMsg.OnOff) {
       
-      if  (!inMsg.Button1State) {
-        for (uint8_t i=0; i<(sizeof(preset1) / sizeof(preset1[0])); i+=2) {
-          float b = preset1[i]; // Get the base brightness for this channel
-          float t = preset1[i+1]; // Get the temp factor for this channel
-          int coolPWM, warmPWM;
-            if(t <= 0.5) {
-              coolPWM = (int)(b * 4095.0); 
-              warmPWM = (int)(t * 2.0 * b * 4095.0);
-            }
-            else {
-              // Right half of the slider: Warm is pegged at Max, Cool ramps down from Max to 0
-              coolPWM = (int)((1.0 - t) * 2.0 * b * 4095.0); 
-              warmPWM = (int)(b * 4095.0);                   
-              }
+    //   if  (!inMsg.Button1State) {
+    //     for (uint8_t i=0; i<(sizeof(preset1) / sizeof(preset1[0])); i+=2) {
+    //       float b = preset1[i]; // Get the base brightness for this channel
+    //       float t = preset1[i+1]; // Get the temp factor for this channel
+    //       int coolPWM, warmPWM;
+    //         if(t <= 0.5) {
+    //           coolPWM = (int)(b * 4095.0); 
+    //           warmPWM = (int)(t * 2.0 * b * 4095.0);
+    //         }
+    //         else {
+    //           // Right half of the slider: Warm is pegged at Max, Cool ramps down from Max to 0
+    //           coolPWM = (int)((1.0 - t) * 2.0 * b * 4095.0); 
+    //           warmPWM = (int)(b * 4095.0);                   
+    //           }
           
 
-          lastPreset[i] = coolPWM; 
-          lastPreset[i+1] = warmPWM;
-        }
-      } 
-      else if (!inMsg.Button2State) {
-         for (uint8_t i=0; i<(sizeof(preset2) / sizeof(preset2[0])); i+=2) {
-          float b = preset1[i]; // Get the base brightness for this channel
-          float t = preset1[i+1]; // Get the temp factor for this channel
-          int coolPWM, warmPWM;
-            if(t <= 0.5) {
-              coolPWM = (int)(b * 4095.0); 
-              warmPWM = (int)(t * 2.0 * b * 4095.0);
-            }
-            else {
-              // Right half of the slider: Warm is pegged at Max, Cool ramps down from Max to 0
-              coolPWM = (int)((1.0 - t) * 2.0 * b * 4095.0); 
-              warmPWM = (int)(b * 4095.0);                   
-              }
+    //       lastPreset[i] = coolPWM; 
+    //       lastPreset[i+1] = warmPWM;
+    //     }
+    //   } 
+    //   else if (!inMsg.Button2State) {
+    //      for (uint8_t i=0; i<(sizeof(preset2) / sizeof(preset2[0])); i+=2) {
+    //       float b = preset1[i]; // Get the base brightness for this channel
+    //       float t = preset1[i+1]; // Get the temp factor for this channel
+    //       int coolPWM, warmPWM;
+    //         if(t <= 0.5) {
+    //           coolPWM = (int)(b * 4095.0); 
+    //           warmPWM = (int)(t * 2.0 * b * 4095.0);
+    //         }
+    //         else {
+    //           // Right half of the slider: Warm is pegged at Max, Cool ramps down from Max to 0
+    //           coolPWM = (int)((1.0 - t) * 2.0 * b * 4095.0); 
+    //           warmPWM = (int)(b * 4095.0);                   
+    //           }
           
 
-          lastPreset[i] = coolPWM; 
-          lastPreset[i+1] = warmPWM;
-        }
-      } 
-      else if (!inMsg.Button3State) {
-          // FIXED: Now dynamically calculates array size instead of hardcoding '3'
-          for (uint8_t i=0; i<(sizeof(preset3) / sizeof(preset3[0])); i+=2) {
-            float b = preset3[i]; // Get the base brightness for this channel
-            float t = preset3[i+1]; // Get the temp factor for this channel
-            int coolPWM, warmPWM;
-              if(t <= 0.5) {
-                coolPWM = (int)(b * 4095.0); 
-                warmPWM = (int)(t * 2.0 * b * 4095.0);
-              }
-              else {
-                // Right half of the slider: Warm is pegged at Max, Cool ramps down from Max to 0
-                coolPWM = (int)((1.0 - t) * 2.0 * b * 4095.0); 
-                warmPWM = (int)(b * 4095.0);                   
-                }
+    //       lastPreset[i] = coolPWM; 
+    //       lastPreset[i+1] = warmPWM;
+    //     }
+    //   } 
+    //   else if (!inMsg.Button3State) {
+    //       // FIXED: Now dynamically calculates array size instead of hardcoding '3'
+    //       for (uint8_t i=0; i<(sizeof(preset3) / sizeof(preset3[0])); i+=2) {
+    //         float b = preset3[i]; // Get the base brightness for this channel
+    //         float t = preset3[i+1]; // Get the temp factor for this channel
+    //         int coolPWM, warmPWM;
+    //           if(t <= 0.5) {
+    //             coolPWM = (int)(b * 4095.0); 
+    //             warmPWM = (int)(t * 2.0 * b * 4095.0);
+    //           }
+    //           else {
+    //             // Right half of the slider: Warm is pegged at Max, Cool ramps down from Max to 0
+    //             coolPWM = (int)((1.0 - t) * 2.0 * b * 4095.0); 
+    //             warmPWM = (int)(b * 4095.0);                   
+    //             }
             
 
-            lastPreset[i] = coolPWM; 
-            lastPreset[i+1] = warmPWM;
-          }
-      }
+    //         lastPreset[i] = coolPWM; 
+    //         lastPreset[i+1] = warmPWM;
+    //       }
+    //   }
 
-      // Apply the chosen (or remembered) preset using the Smart Router
-        for (uint8_t i=0; i<(sizeof(lastPreset) / sizeof(lastPreset[0])); i++) {
-           pwm.setPWM(i, 0, lastPreset[i]);
-        } 
-      }
-    else if(!inMsg.OnOff) {
-      // System is Off - Apply 0 using the Smart Router
-        for (uint8_t i=0; i<(sizeof(lastPreset) / sizeof(lastPreset[0])); i++) {
-           pwm.setPWM(i, 0, 0);
-      }
+    //   // Apply the chosen (or remembered) preset using the Smart Router
+    //     for (uint8_t i=0; i<(sizeof(lastPreset) / sizeof(lastPreset[0])); i++) {
+    //        pwm.setPWM(i, 0, lastPreset[i]);
+    //     } 
+    //   }
+    // else if(!inMsg.OnOff) {
+    //   // System is Off - Apply 0 using the Smart Router
+    //     for (uint8_t i=0; i<(sizeof(lastPreset) / sizeof(lastPreset[0])); i++) {
+    //        pwm.setPWM(i, 0, 0);
+    //   }
+    // }
+
+
+    OnOff = inMsg.OnOff;
+    if(!inMsg.Button1State) {
+      currentPreset = 1;
+    } else if (!inMsg.Button2State) {
+      currentPreset = 2;
+    } else if (!inMsg.Button3State) {
+      currentPreset = 3;
     }
+    writePWMs(OnOff, currentPreset);
   }
 }
     
