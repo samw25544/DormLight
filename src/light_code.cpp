@@ -17,12 +17,18 @@
 
 // Create the PCA9685 object at the default hardware address(0x40)
 Adafruit_PWMServoDriver pwm = Adafruit_PWMServoDriver(0x40);
+Adafruit_PWMServoDriver pwm_board2 = Adafruit_PWMServoDriver(0x41); 
 //Adafruit_PWMServoDriver pwm_board2 = Adafruit_PWMServoDriver(0x41); //for the second pca
 volatile bool newData = false;
-int preset1 [2] = {200, 200}; // Example brightness value for preset 1
-int preset2 [2] = {1500, 200}; // Example brightness value for preset 2
-int preset3 [2] = {4095, 4095}; // Example brightness value for preset 3
-int lastPreset[2] = {0, 0}; // To store the last preset values for both channels
+/*every int in the light value will follow the pattern: {cool white brightness panel 1,  
+warm white brightness panel 1, cool white brightness panel 2,  warm white brightness panel 2.....}*/
+//
+//int preset1 [14] = {200, 1500, 200, 1500, 200, 1500, 200, 1500, 200, 1500, 200, 1500, 200, 1500};
+float preset1 [14] = {1, 0.9, 1, 0.9, 1, 0.9, 1, 0.9, 1, 0.9, 1, 0.9, 1, 0.9};
+float preset2 [14] = {1, 0.7, 1, 0.7, 1, 0.7, 1, 0.7, 1, 0.7, 1, 0.7, 1, 0.7};
+float preset3 [14] = {1, 0.2, 1, 0.2, 1, 0.2, 1, 0.2, 1, 0.2, 1, 0.2, 1, 0.2};
+float lastPreset[14] = {0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,0, 0};
+
 
 // put function declarations here:
 
@@ -85,6 +91,24 @@ void save_settings(JsonDocument doc) {
   settings_file.close();
 }
 
+void updatePresets() {
+  JsonDocument doc = load_settings();
+  int len = sizeof(preset1) / sizeof(preset1[0]); // = 14
+  for (uint8_t i = 0; i < len; i += 2) {
+    preset1[i] = (float)(doc["presets"][0]["panels"][i/2]["bright"])/100;
+    Serial.println(preset1[i]);
+    preset1[i+1] = (float)(doc["presets"][0]["panels"][i/2]["temp"])/100;
+    preset2[i] = (float)(doc["presets"][1]["panels"][i/2]["bright"])/100;
+    Serial.println(preset2[i]);
+    preset2[i+1] = (float)(doc["presets"][1]["panels"][i/2]["temp"])/100;
+    preset3[i] = (float)(doc["presets"][2]["panels"][i/2]["bright"])/100;
+    Serial.println(preset3[i]);
+    preset3[i+1] = (float)(doc["presets"][2]["panels"][i/2]["temp"])/100;
+
+  }
+  Serial.println("updated");
+}
+
 void setup() {
   // put your setup code here, to run once:
   Serial.begin(115200);
@@ -108,42 +132,24 @@ void setup() {
     request->send(SPIFFS, "/index.html");
   });
 
-  // File file = SPIFFS.open("/index.html");
-  // if (!file) {
-  //   Serial.println("Failed to open file for reading");
-  // } else {
-  //   Serial.println("Opened file for reading");
-  // }
-  // while (file.available()) {
-  //   Serial.println(file.read());
-  //   Serial.println("file");
-  // }
-  
-  // // Close the file
-  // file.close();
   ws.onEvent([](AsyncWebSocket *server, AsyncWebSocketClient *client, AwsEventType type, void *arg, uint8_t *data, size_t len) {
     (void)len;
     if(type == WS_EVT_DATA) {
-      //Serial.println("data");
       Serial.println("data");
       data[len] = '\0'; 
       Serial.println((char *)data);
-      //Serial.println("something else");
       JsonDocument newDoc;
       deserializeJson(newDoc, (char *)data);
       save_settings(newDoc);
-      //JsonDocument doc = load_settings();
+      updatePresets();
     } else if (type == WS_EVT_CONNECT) {
       Serial.println("Connected");
-      // char output[1024];
-      // serializeJson(doc, output);
-      // ws.printfAll(output);
       JsonDocument freshDoc = load_settings();
       char output[1024];
       serializeJson(freshDoc, output);
       client->text(output); 
+      updatePresets();
     } else if (type == WS_EVT_DISCONNECT) {
-      //save_settings(doc);
       Serial.println("disconnected");
     }
   });
@@ -189,53 +195,102 @@ void setup() {
 
   //Initialize the PCA9685
   pwm.begin();
-
-  // Set the PWM Frequency for the PT4115
   pwm.setPWMFreq(1000); 
+  
+  pwm_board2.begin();
+  pwm_board2.setPWMFreq(1000); 
 
-  // Ensure all lights are OFF on startup
-  for (uint8_t i=0; i<16; i++) {
-    pwm .setPWM(i, 0, 0); 
-  }
+  // Ensure ALL lights (up to 32 ports across 2 boards) are OFF on startup
+  // for (uint8_t i=0; i<32; i++) {
+  //   setLightPWM(i, 0); 
+  // }
 
-  Serial.println("PCA9685 Initialized Successfully!");
-
+  Serial.println("Both PCA9685 Boards Initialized Successfully!");
+  updatePresets();
 }
 
+unsigned long previousMillis = 0;
+const long interval = 100;
 
-  
 
 void loop() {
-  // Only update the PCA9685 when a new message actually arrives
-  if (newData) {
-    newData = false; // Reset the flag immediately
+  if (true) {
+    newData = false; 
 
-    if (inMsg.OnOff) {
+    if  (inMsg.OnOff) {
       
-      // Update presets based on which button was pressed
-      // Using 'else if' stops the code from overriding itself
-      if (!inMsg.Button1State) {
-        lastPreset[0] = 200;
-        lastPreset[1] = 200;
+      if  (!inMsg.Button1State) {
+        for (uint8_t i=0; i<(sizeof(preset1) / sizeof(preset1[0])); i+=2) {
+          float b = preset1[i]; // Get the base brightness for this channel
+          float t = preset1[i+1]; // Get the temp factor for this channel
+          int coolPWM, warmPWM;
+            if(t <= 0.5) {
+              coolPWM = (int)(b * 4095.0); 
+              warmPWM = (int)(t * 2.0 * b * 4095.0);
+            }
+            else {
+              // Right half of the slider: Warm is pegged at Max, Cool ramps down from Max to 0
+              coolPWM = (int)((1.0 - t) * 2.0 * b * 4095.0); 
+              warmPWM = (int)(b * 4095.0);                   
+              }
+          
+
+          lastPreset[i] = coolPWM; 
+          lastPreset[i+1] = warmPWM;
+        }
       } 
       else if (!inMsg.Button2State) {
-        lastPreset[0] = 1500;
-        lastPreset[1] = 200;
+         for (uint8_t i=0; i<(sizeof(preset2) / sizeof(preset2[0])); i+=2) {
+          float b = preset1[i]; // Get the base brightness for this channel
+          float t = preset1[i+1]; // Get the temp factor for this channel
+          int coolPWM, warmPWM;
+            if(t <= 0.5) {
+              coolPWM = (int)(b * 4095.0); 
+              warmPWM = (int)(t * 2.0 * b * 4095.0);
+            }
+            else {
+              // Right half of the slider: Warm is pegged at Max, Cool ramps down from Max to 0
+              coolPWM = (int)((1.0 - t) * 2.0 * b * 4095.0); 
+              warmPWM = (int)(b * 4095.0);                   
+              }
+          
+
+          lastPreset[i] = coolPWM; 
+          lastPreset[i+1] = warmPWM;
+        }
       } 
       else if (!inMsg.Button3State) {
-        // FIXED: 4095 is the maximum. 4096 turns the PCA9685 off!
-        lastPreset[0] = 4095; 
-        lastPreset[1] = 4095;
+          // FIXED: Now dynamically calculates array size instead of hardcoding '3'
+          for (uint8_t i=0; i<(sizeof(preset3) / sizeof(preset3[0])); i+=2) {
+            float b = preset3[i]; // Get the base brightness for this channel
+            float t = preset3[i+1]; // Get the temp factor for this channel
+            int coolPWM, warmPWM;
+              if(t <= 0.5) {
+                coolPWM = (int)(b * 4095.0); 
+                warmPWM = (int)(t * 2.0 * b * 4095.0);
+              }
+              else {
+                // Right half of the slider: Warm is pegged at Max, Cool ramps down from Max to 0
+                coolPWM = (int)((1.0 - t) * 2.0 * b * 4095.0); 
+                warmPWM = (int)(b * 4095.0);                   
+                }
+            
+
+            lastPreset[i] = coolPWM; 
+            lastPreset[i+1] = warmPWM;
+          }
       }
 
-      // Apply the chosen (or remembered) preset
-      pwm.setPWM(0, 0, lastPreset[0]);
-      pwm.setPWM(1, 0, lastPreset[1]);
-
-    } else {
-      // System is Off
-      pwm.setPWM(0, 0, 0);
-      pwm.setPWM(1, 0, 0);
+      // Apply the chosen (or remembered) preset using the Smart Router
+        for (uint8_t i=0; i<(sizeof(lastPreset) / sizeof(lastPreset[0])); i++) {
+           pwm.setPWM(i, 0, lastPreset[i]);
+        } 
+      }
+    else if(!inMsg.OnOff) {
+      // System is Off - Apply 0 using the Smart Router
+        for (uint8_t i=0; i<(sizeof(lastPreset) / sizeof(lastPreset[0])); i++) {
+           pwm.setPWM(i, 0, 0);
+      }
     }
   }
 }

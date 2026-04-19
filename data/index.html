@@ -25,6 +25,7 @@
       <div class="pre-sets">
         <button onclick="selectPresave(0)">Pre-Save 1</button>
         <button onclick="selectPresave(1)">Pre-Save 2</button>
+        <button onclick="selectPresave(2)">Pre-Save 3</button>
         <!-- <button class="save-button" onclick="saveSettings()">Save Settings</button> -->
         <div id="message"></div>
       </div>
@@ -149,6 +150,8 @@
     function selectPresave(slot) {
       currentSlot = slot;
       document.getElementById('message').innerText = `Editing Pre-Save Slot ${slot+1}`;
+      document.getElementById('slider1').value = state.presets[currentSlot].panels[currentPanel].bright
+      document.getElementById('slider2').value = state.presets[currentSlot].panels[currentPanel].temp
     }
     function selectPanel(panel) {
       document.getElementById(`panel${currentPanel}`).classList.remove('selected')

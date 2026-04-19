@@ -4,39 +4,7 @@
         {
             "panels": [
                 {
-                    "bright": 0,
-                    "temp": 0
-                },
-                {
-                    "bright": 25,
-                    "temp": 0
-                },
-                {
-                    "bright": 50,
-                    "temp": 0
-                },
-                {
-                    "bright": 0,
-                    "temp": 0
-                },
-                {
-                    "bright": 0,
-                    "temp": 0
-                },
-                {
-                    "bright": 0,
-                    "temp": 0
-                },
-                {
-                    "bright": 0,
-                    "temp": 0
-                }
-            ]
-        },
-        {
-            "panels": [
-                {
-                    "bright": 0,
+                    "bright": 100,
                     "temp": 0
                 },
                 {
@@ -77,7 +45,39 @@
                 },
                 {
                     "bright": 0,
-                    "temp": 50
+                    "temp": 0
+                },
+                {
+                    "bright": 0,
+                    "temp": 0
+                },
+                {
+                    "bright": 0,
+                    "temp": 0
+                },
+                {
+                    "bright": 0,
+                    "temp": 0
+                },
+                {
+                    "bright": 0,
+                    "temp": 0
+                }
+            ]
+        },
+        {
+            "panels": [
+                {
+                    "bright": 0,
+                    "temp": 0
+                },
+                {
+                    "bright": 0,
+                    "temp": 0
+                },
+                {
+                    "bright": 100,
+                    "temp": 0
                 },
                 {
                     "bright": 0,
