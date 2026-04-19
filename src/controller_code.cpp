@@ -11,7 +11,7 @@
   int TruebuttonState3 = 0;
   int TrueONOFFState = 0;
 
-  int lastONOFFState = 1;
+  int lastONOFFState = 1; 
   int lastButtonState1 = 1;
   int lastButtonState2 = 1;
   int lastButtonState3 = 1;
