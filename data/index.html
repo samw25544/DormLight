@@ -154,6 +154,8 @@
       document.getElementById(`panel${currentPanel}`).classList.remove('selected')
       currentPanel = panel;
       document.getElementById(`panel${currentPanel}`).classList.add('selected')
+      document.getElementById('slider1').value = state.presets[currentSlot].panels[currentPanel].bright
+      document.getElementById('slider2').value = state.presets[currentSlot].panels[currentPanel].temp
       //document.getElementById('message').innerText = `Editing Pre-Save Slot ${slot}`;
     }
     function updateBrightness() {
@@ -180,8 +182,13 @@
       console.log(event.data);
       state = JSON.parse(event.data);
       //state.presets[2].panels[5].bright = 400;
-      sendUpdate();
+      document.getElementById('slider1').value = state.presets[currentSlot].panels[currentPanel].bright
+      document.getElementById('slider2').value = state.presets[currentSlot].panels[currentPanel].temp
+      //sendUpdate();
     }
+    window.addEventListener('unload', () => {
+      websocket.close()
+    });
   </script>
 </body>
 </html>

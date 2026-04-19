@@ -74,6 +74,7 @@ JsonDocument load_settings() {
   }
   Serial.println((int)doc["current_preset"]);
   return doc;
+  settings_file.close();
 }
 
 void save_settings(JsonDocument doc) {
@@ -81,6 +82,7 @@ void save_settings(JsonDocument doc) {
   if (serializeJson(doc, settings_file) == 0) {
         Serial.print("write error");
   }
+  settings_file.close();
 }
 
 void setup() {
@@ -119,7 +121,7 @@ void setup() {
   
   // // Close the file
   // file.close();
-  ws.onEvent([doc](AsyncWebSocket *server, AsyncWebSocketClient *client, AwsEventType type, void *arg, uint8_t *data, size_t len) {
+  ws.onEvent([](AsyncWebSocket *server, AsyncWebSocketClient *client, AwsEventType type, void *arg, uint8_t *data, size_t len) {
     (void)len;
     if(type == WS_EVT_DATA) {
       //Serial.println("data");
@@ -130,12 +132,19 @@ void setup() {
       JsonDocument newDoc;
       deserializeJson(newDoc, (char *)data);
       save_settings(newDoc);
-      JsonDocument doc = load_settings();
+      //JsonDocument doc = load_settings();
     } else if (type == WS_EVT_CONNECT) {
       Serial.println("Connected");
+      // char output[1024];
+      // serializeJson(doc, output);
+      // ws.printfAll(output);
+      JsonDocument freshDoc = load_settings();
       char output[1024];
-      serializeJson(doc, output);
-      ws.printfAll(output);
+      serializeJson(freshDoc, output);
+      client->text(output); 
+    } else if (type == WS_EVT_DISCONNECT) {
+      //save_settings(doc);
+      Serial.println("disconnected");
     }
   });
 
